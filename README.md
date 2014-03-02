@@ -1,6 +1,6 @@
 # Blockchain
 
-TODO: Write a gem description
+A Blockchain Toolset
 
 ## Installation
 
@@ -18,7 +18,12 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```bash
+Commands:
+  blockchain help [COMMAND]  # Describe available commands or one specific command
+  blockchain prepare         # create the db and load the schema
+  blockchain sync            # synchronize with blockchain.info
+```
 
 ## Contributing
 
