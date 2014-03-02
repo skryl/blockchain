@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift "#{File.dirname(File.expand_path(__FILE__))}/../lib/"
+
+require 'thor'
+require 'blockchain'
+
+class Blockchain::Runner < Thor
+
+  COMMON_OPTS = { :log_level => :string }
+
+  SYNC_OPTS   = { :access_code => :string, :parallel => :boolean,
+                  :start => :integer, :end => :integer }
+
+  DB_OPTS     = { :db_type => :string,
+                  :db_host => :string, :db_name => :string,
+                  :db_user => :string, :db_pass => :string }
+
+
+  desc :sync, 'synchronize with blockchain.info'
+  method_options COMMON_OPTS.merge(SYNC_OPTS).merge(DB_OPTS)
+  def sync
+    init
+    Blockchain::Db.new(options).connect!
+    Blockchain::Sync.new(options).start
+  end
+
+  desc :prepare, 'create the db and load the schema'
+  method_options COMMON_OPTS.merge(DB_OPTS)
+  def prepare
+    init
+    Blockchain::Db.new(options).prepare!
+  end
+
+private
+
+  def init
+    Blockchain::Utils.logger.level = (options[:log_level] || 1).to_i
+  end
+
+end
+
+Blockchain::Runner.start
