@@ -2,7 +2,7 @@ class Blockchain::Sync
   include Blockchain::Utils
   include Blockchain::ORM
 
-  THREAD_COUNT = 10
+  THREAD_COUNT = 25
 
   BLOCK_START = 1
   BLOCK_END = 1000
@@ -56,41 +56,12 @@ private
     logger.info "Creating block #{n}"
     raw_block = http.getblock(n)
 
-    unless raw_block.is_a? Hash
-      logger.error "bad response: #{raw_block}"
+    if raw_block.is_a? Hash
+      block_attrs = Block.from_json(raw_block)
+      Block.create(block_attrs, without_protection: true)
     else
-      block = fix_fields(raw_block)
-      logger.debug block.pretty_inspect
-      Block.create(block, without_protection: true)
+      logger.error("bad response: #{raw_block.pretty_inspect}")
     end
-  end
-
-  def fix_fields(raw_block)
-    raw_block['id'] = raw_block.delete('block_index')
-    raw_block.delete('received_time')
-
-    raw_block['transactions_attributes'] = \
-      raw_block.delete('tx').each do |tx|
-        tx['id'] = tx.delete('tx_index')
-        tx['block_id'] = raw_block['id']
-        tx.delete('time')
-
-        tx['inputs_attributes'] = \
-          tx.delete('inputs').each do |input|
-            next unless input['prev_out']
-            prev_out = input.delete('prev_out')
-            input['txn_id'] = prev_out['tx_index']
-            input['n'] = prev_out['n']
-          end.reject(&:empty?)
-
-        tx['outputs_attributes'] = \
-          tx.delete('out').each do |output|
-            output['txn_id'] = tx['id']
-            output.delete('tx_index')
-          end
-      end
-
-    raw_block
   end
 
 end
