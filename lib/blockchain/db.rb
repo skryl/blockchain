@@ -10,7 +10,7 @@ class Blockchain::Db
       username:  @options[:db_user] || 'root',
       password:  @options[:db_pass] || '',
       database:  @options[:db_name] || 'blockchain',
-      pool: 10 }
+      pool: 20 }
   end
 
   def connect!

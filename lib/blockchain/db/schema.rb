@@ -45,11 +45,13 @@ ActiveRecord::Schema.define do
     t.integer 'n'
     t.string  'addr',   limit: 36
     t.integer 'value',  limit: 8
-    t.integer 'type'
+    t.integer 'type',
+    t.string  'addr_tag', limit: 255
+    t.string  'addr_tag_link', limit: 255
   end
 
   fix_pkey    :outputs, :id
-  add_indices :outputs, :txn_id, :addr, :value, :type
+  add_indices :outputs, :txn_id, :addr, :value, :type, :addr_tag, :addr_tag_link
 
   create_table :inputs, force: true do |t|
     t.integer 'txn_id', limit: 8, null: false

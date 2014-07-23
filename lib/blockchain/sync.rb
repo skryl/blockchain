@@ -2,7 +2,7 @@ class Blockchain::Sync
   include Blockchain::Utils
   include Blockchain::ORM
 
-  THREAD_COUNT = 25
+  THREAD_COUNT = 15
 
   BLOCK_START = 1
   BLOCK_END = 1000
@@ -22,6 +22,7 @@ class Blockchain::Sync
     @start_block = get_start_block
     @end_block = get_end_block
     @mutex = Mutex.new
+    @errors = 0
   end
 
   def start
@@ -53,14 +54,19 @@ private
   end
 
   def sync_block(http, n)
-    logger.info "Creating block #{n}"
+    logger.info "Creating block #{n}, Errors: #{@errors}"
     raw_block = http.getblock(n)
 
-    if raw_block.is_a? Hash
-      block_attrs = Block.from_json(raw_block)
-      Block.create(block_attrs, without_protection: true)
-    else
-      logger.error("bad response: #{raw_block.pretty_inspect}")
+    begin
+      if raw_block.is_a? Hash
+        block_attrs = Block.from_json(raw_block)
+        Block.create(block_attrs, without_protection: true)
+      else
+        logger.info("bad response: #{raw_block.pretty_inspect}")
+      end
+    rescue Exception => e
+      logger.error(e.class.to_s)
+      @errors += 1
     end
   end
 
